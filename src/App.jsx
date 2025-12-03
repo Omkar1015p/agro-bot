@@ -1,16 +1,36 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { db } from "./firebase";
-import { doc, updateDoc } from "firebase/firestore";
+import { doc, updateDoc, onSnapshot } from "firebase/firestore";
 
 function App() {
-  // For now we use fixed (fake) values
+  
+  const [soilMoisture, setSoilMoisture] = useState(0);
   const [pumpOn, setPumpOn] = useState(false);      // false = OFF
   const [seederOn, setSeederOn] = useState(false);  // servo seeder
 
-  const soilMoisture = 38;           
+           
   const pumpStatus = pumpOn ? "ON" : "OFF";
   const seederStatus = seederOn ? "ON" : "OFF";
   const deviceRef = doc(db, "agrobot", "device1");
+
+  useEffect(() => {
+  const unsubscribe = onSnapshot(deviceRef, (docSnap) => {
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      if (data.soilMoisture !== undefined) {
+        setSoilMoisture(data.soilMoisture);
+      }
+      if (data.pumpOn !== undefined) {
+        setPumpOn(data.pumpOn);
+      }
+      if (data.seederOn !== undefined) {
+        setSeederOn(data.seederOn);
+      }
+    }
+  });
+  // cleanup when component unmounts
+    return () => unsubscribe();
+  }, [deviceRef]);
 
   return (
     <div
