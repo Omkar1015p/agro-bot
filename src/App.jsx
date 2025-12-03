@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { db } from "./firebase";
+import { doc, updateDoc } from "firebase/firestore";
 
 function App() {
   // For now we use fixed (fake) values
@@ -8,6 +10,7 @@ function App() {
   const soilMoisture = 38;           
   const pumpStatus = pumpOn ? "ON" : "OFF";
   const seederStatus = seederOn ? "ON" : "OFF";
+  const deviceRef = doc(db, "agrobot", "device1");
 
   return (
     <div
@@ -57,8 +60,23 @@ function App() {
             {pumpStatus}
           </p>
           <div style={{ marginTop: "12px", display: "flex", gap: "8px", justifyContent: "center" }}>
-          <button onClick={() => setPumpOn(true)}>ON</button>
-          <button onClick={() => setPumpOn(false)}>OFF</button>
+            <button
+              onClick={() => {
+                setPumpOn(true);
+                updateDoc(deviceRef, { pumpOn: true });
+              }}
+            >
+              ON
+            </button>
+
+            <button
+              onClick={() => {
+                setPumpOn(false);
+                updateDoc(deviceRef, { pumpOn: false });
+              }}
+            >
+              OFF
+            </button>
           </div>
         </div>
 
@@ -80,8 +98,23 @@ function App() {
           </p>
 
           <div style={{ marginTop: "12px", display: "flex", gap: "8px", justifyContent: "center" }}>
-            <button onClick={() => setSeederOn(true)}>ON</button>
-            <button onClick={() => setSeederOn(false)}>OFF</button>
+            <button
+              onClick={() => {
+                setSeederOn(true);
+                updateDoc(deviceRef, { seederOn: true });
+              }}
+            >
+              ON
+            </button>
+
+            <button
+              onClick={() => {
+                setSeederOn(false);
+                updateDoc(deviceRef, { seederOn: false });
+              }}
+            >
+              OFF
+            </button>
           </div>
         </div>
 
