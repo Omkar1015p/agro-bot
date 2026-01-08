@@ -1,36 +1,37 @@
 import { useState, useEffect } from "react";
 import { db } from "./firebase";
-import { doc, updateDoc, onSnapshot } from "firebase/firestore";
+import { ref, set, onValue } from "firebase/database";
+
 
 function App() {
-  
-  const [soilMoisture, setSoilMoisture] = useState(0);
-  const [pumpOn, setPumpOn] = useState(false);      // false = OFF
-  const [seederOn, setSeederOn] = useState(false);  // servo seeder
+const [soilMoisture, setSoilMoisture] = useState(0);
+const [pumpStatus, setPumpStatus] = useState("OFF");
+const [seederStatus, setSeederStatus] = useState("OFF");
 
-           
-  const pumpStatus = pumpOn ? "ON" : "OFF";
-  const seederStatus = seederOn ? "ON" : "OFF";
-  const deviceRef = doc(db, "agrobot", "device1");
+const pumpRef = ref(db, "/AgroBot/pump");
+const seederRef = ref(db, "/AgroBot/seeder");
+const moistureRef = ref(db, "/AgroBot/moisture");
 
   useEffect(() => {
-  const unsubscribe = onSnapshot(deviceRef, (docSnap) => {
-    if (docSnap.exists()) {
-      const data = docSnap.data();
-      if (data.soilMoisture !== undefined) {
-        setSoilMoisture(data.soilMoisture);
-      }
-      if (data.pumpOn !== undefined) {
-        setPumpOn(data.pumpOn);
-      }
-      if (data.seederOn !== undefined) {
-        setSeederOn(data.seederOn);
-      }
+  onValue(moistureRef, (snapshot) => {
+    if (snapshot.exists()) {
+      setSoilMoisture(snapshot.val());
     }
   });
-  // cleanup when component unmounts
-    return () => unsubscribe();
-  }, [deviceRef]);
+
+  onValue(pumpRef, (snapshot) => {
+    if (snapshot.exists()) {
+      setPumpStatus(snapshot.val());
+    }
+  });
+
+  onValue(seederRef, (snapshot) => {
+    if (snapshot.exists()) {
+      setSeederStatus(snapshot.val());
+    }
+  });
+}, []);
+
 
   return (
     <div
@@ -81,19 +82,13 @@ function App() {
           </p>
           <div style={{ marginTop: "12px", display: "flex", gap: "8px", justifyContent: "center" }}>
             <button
-              onClick={() => {
-                setPumpOn(true);
-                updateDoc(deviceRef, { pumpOn: true });
-              }}
+              onClick={() => set(pumpRef, "ON")}
             >
               ON
             </button>
 
             <button
-              onClick={() => {
-                setPumpOn(false);
-                updateDoc(deviceRef, { pumpOn: false });
-              }}
+              onClick={() => set(pumpRef, "OFF")}
             >
               OFF
             </button>
@@ -119,19 +114,13 @@ function App() {
 
           <div style={{ marginTop: "12px", display: "flex", gap: "8px", justifyContent: "center" }}>
             <button
-              onClick={() => {
-                setSeederOn(true);
-                updateDoc(deviceRef, { seederOn: true });
-              }}
+              onClick={() => set(seederRef, "ON")}
             >
               ON
             </button>
 
             <button
-              onClick={() => {
-                setSeederOn(false);
-                updateDoc(deviceRef, { seederOn: false });
-              }}
+              onClick={() => set(seederRef, "OFF")}
             >
               OFF
             </button>
